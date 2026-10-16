@@ -1,7 +1,7 @@
 {
   "id": "remotely-save-http",
   "name": "Remotely Save HTTP",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "minAppVersion": "0.13.21",
   "description": "Manual WebDAV sync over HTTP or HTTPS.",
   "author": "fyears",
