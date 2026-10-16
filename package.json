@@ -1,6 +1,6 @@
 {
   "name": "remotely-save-http",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Manual WebDAV sync over HTTP or HTTPS for Obsidian.",
   "scripts": {
     "dev2": "node esbuild.config.mjs --watch",

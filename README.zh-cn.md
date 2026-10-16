@@ -10,6 +10,7 @@
 - 可通过侧边栏图标、设置页的“立即同步”按钮或“开始同步”命令手动同步。
 - 支持 WebDAV Basic / Digest 鉴权、自定义远程文件夹、Depth 请求头和自定义请求头。
 - 插件清单声明支持 Obsidian 桌面端和移动端。
+- 在 Markdown 列表项的文字末尾输入空格再按回车，自动创建缩进一级的子列表项。
 
 这个版本不启用自动或定时同步、其他云服务及文件端到端加密，也不会同步仓库的 `.obsidian` 配置目录。首次同步或从其他同步插件切换前，请备份仓库：双向同步可能更新或删除本地及远端文件。
 
@@ -18,6 +19,17 @@
 这个分支不能在 Obsidian 社区插件商店中直接搜索安装。先安装 [BRAT](https://github.com/TfTHacker/obsidian42-brat)，运行它的“Add a beta plugin for testing”命令，输入 `https://github.com/guangtouge82/remotely-save-http`，选择最新 Release，然后在 Obsidian 社区插件设置中启用 **Remotely Save HTTP**。
 
 BRAT 从本仓库的 GitHub Release 附件下载 `manifest.json`、`main.js` 和 `styles.css`。仓库里的源码本身不能直接作为安装包。
+
+## 列表子节点
+
+编辑 Markdown 列表时，在当前项目文字末尾输入一个空格，然后按回车。例如 `- 父节点 ` 会变成：
+
+```markdown
+- 父节点
+  - 子节点
+```
+
+光标会停在新建的子节点，可继续输入“子节点”。普通回车仍按 Obsidian 原有方式创建同级项目；非列表文字和有选区时不会触发此功能。编号列表也适用。
 
 ## 从源码安装
 

@@ -6,6 +6,7 @@ import { RefreshCcw, RotateCcw, createElement } from "lucide";
 import {
   Events,
   FileSystemAdapter,
+  MarkdownView,
   Notice,
   Platform,
   Plugin,
@@ -23,6 +24,7 @@ import { getClient } from "./fsGetter";
 import { FakeFsLocal } from "./fsLocal";
 import { FakeFsPlain } from "./fsPlain";
 import { DEFAULT_WEBDAV_CONFIG } from "./fsWebdav";
+import { childListLineAfterSpace } from "./editorListIndent";
 import { I18n } from "./i18n";
 import type { LangTypeAndAuto, TransItemType } from "./i18n";
 import {
@@ -519,6 +521,41 @@ export default class RemotelySavePlugin extends Plugin {
         await this.syncRun("manual");
       },
     });
+
+    this.registerDomEvent(document, "keydown", (event: KeyboardEvent) => {
+      if (
+        event.key !== "Enter" ||
+        event.isComposing ||
+        event.shiftKey ||
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey ||
+        !(event.target instanceof Element) ||
+        !event.target.closest('.cm-content[contenteditable="true"]')
+      ) return;
+
+      const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+      if (!view || !view.containerEl.contains(event.target)) return;
+      const editor = view.editor;
+      if (editor.somethingSelected()) return;
+      const cursor = editor.getCursor();
+      const line = editor.getLine(cursor.line);
+      const child = childListLineAfterSpace(line, cursor.ch);
+      if (!child) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      editor.replaceRange(
+        child.insertion,
+        { line: cursor.line, ch: child.fromCh },
+        cursor,
+        "input"
+      );
+      editor.setCursor({
+        line: cursor.line + 1,
+        ch: child.insertion.length - 1,
+      });
+    }, true);
 
     this.addSettingTab(new RemotelySaveSettingTab(this.app, this));
 

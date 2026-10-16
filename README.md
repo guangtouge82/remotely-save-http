@@ -10,6 +10,7 @@ A WebDAV-only fork of [Remotely Save](https://github.com/remotely-save/remotely-
 - Manual sync from the ribbon icon, the **Sync now** button in settings, or the **Start sync** command.
 - WebDAV Basic or Digest authentication, a configurable remote folder, Depth header, and custom request headers.
 - Desktop and mobile Obsidian, as declared in the plugin manifest.
+- Space then Enter at the end of a Markdown list item creates a nested child item.
 
 This build does not enable automatic or scheduled sync, other cloud providers, or end-to-end file encryption. It does not sync the vault's `.obsidian` configuration folder. Back up your vault before the first sync or when switching from another sync plugin: bidirectional sync can update or delete files on either side.
 
@@ -18,6 +19,17 @@ This build does not enable automatic or scheduled sync, other cloud providers, o
 This fork is not in Obsidian's community plugin browser. Install [BRAT](https://github.com/TfTHacker/obsidian42-brat), use its **Add a beta plugin for testing** command, and enter `https://github.com/guangtouge82/remotely-save-http`. Select the latest release, then enable **Remotely Save HTTP** in Obsidian's community plugin settings.
 
 BRAT downloads `manifest.json`, `main.js`, and `styles.css` from this repository's GitHub Release assets. The repository's source tree alone is not an installable release.
+
+## Nested list items
+
+While editing a Markdown list, type a space after the item's text and press Enter. For example, `- Parent ` becomes:
+
+```markdown
+- Parent
+  - Child
+```
+
+The cursor moves to the new child item, where you can type `Child`. Enter without a trailing space retains Obsidian's normal sibling-item behavior. Plain text and selections are unaffected. Numbered lists work too.
 
 ## Install from source
 
