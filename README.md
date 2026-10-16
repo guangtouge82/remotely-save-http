@@ -2,17 +2,18 @@
 
 English | [简体中文](./README.zh-cn.md)
 
-A WebDAV-only fork of [Remotely Save](https://github.com/remotely-save/remotely-save) for Obsidian. It supports WebDAV endpoints over **HTTP or HTTPS**, including an HTTP server reachable through Tailscale. Sync is started manually and works in both directions.
+A WebDAV-only fork of [Remotely Save](https://github.com/remotely-save/remotely-save) for Obsidian. It supports WebDAV endpoints over **HTTP or HTTPS**, including an HTTP server reachable through Tailscale. Sync works in both directions and can run on a schedule or manually.
 
 ## What this build supports
 
 - One remote service: WebDAV.
 - Manual sync from the ribbon icon, the **Sync now** button in settings, or the **Start sync** command.
+- Scheduled merge sync every 5 minutes by default, with 1, 10, 30 minute and Off options. Markdown changes use smart conflict handling.
 - WebDAV Basic or Digest authentication, a configurable remote folder, Depth header, and custom request headers.
 - Desktop and mobile Obsidian, as declared in the plugin manifest.
 - Space then Enter at the end of a Markdown list item creates a nested child item.
 
-This build does not enable automatic or scheduled sync, other cloud providers, or end-to-end file encryption. It does not sync the vault's `.obsidian` configuration folder. Back up your vault before the first sync or when switching from another sync plugin: bidirectional sync can update or delete files on either side.
+This build does not enable other cloud providers or end-to-end file encryption. It does not sync the vault's `.obsidian` configuration folder. Back up your vault before the first sync or when switching from another sync plugin: bidirectional sync can update or delete files on either side.
 
 ## Install with BRAT (including Obsidian Mobile)
 
@@ -72,6 +73,12 @@ The collapsed **Advanced options** section contains Basic/Digest authentication,
 2. Once the check succeeds, click **Sync now**, use the ribbon icon, or run **Start sync** from the command palette.
 
 The connection and sync buttons require a valid `http://` or `https://` address. If the check fails, verify the endpoint path, port, credentials, and server reachability.
+
+## Scheduled merge sync
+
+The **Scheduled merge sync** setting defaults to every 5 minutes while Obsidian is open. Choose 1, 10, 30 minutes, or Off as needed. A scheduled run is skipped if another sync is active or no valid WebDAV address is configured. On mobile, timers pause while Obsidian is suspended in the background.
+
+When both devices change a Markdown file, smart conflict handling attempts to merge it. Edits to the same lines can produce conflict markers that need review. Files that cannot be merged are preserved as separate copies. Frequent sync reduces the conflict window but cannot guarantee conflict-free edits across devices.
 
 ## HTTP and local settings
 

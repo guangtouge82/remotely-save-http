@@ -77,6 +77,22 @@ export class RemotelySaveSettingTab extends PluginSettingTab {
     const updatePath = () => pathPreview.setText(`/${config.remoteBaseDir || vaultName}/`);
     updatePath();
 
+    const schedule = card(t("webdav_only_schedule"), t("webdav_only_schedule_desc"));
+    new Setting(schedule).setName(t("webdav_only_schedule_interval"))
+      .setDesc(t("webdav_only_schedule_hint"))
+      .addDropdown((dropdown) => dropdown
+        .addOption("-1", t("webdav_only_schedule_off"))
+        .addOption("1", t("webdav_only_schedule_1min"))
+        .addOption("5", t("webdav_only_schedule_5min"))
+        .addOption("10", t("webdav_only_schedule_10min"))
+        .addOption("30", t("webdav_only_schedule_30min"))
+        .setValue(String(this.plugin.settings.scheduledMergeIntervalMinutes ?? 5))
+        .onChange(async (value) => {
+          this.plugin.settings.scheduledMergeIntervalMinutes = Number(value);
+          await this.plugin.saveSettings();
+          this.plugin.configureScheduledMerge();
+        }));
+
     const advanced = containerEl.createEl("details", { cls: "rsh-card rsh-advanced" });
     advanced.createEl("summary", { text: t("webdav_only_advanced") });
     const advancedContent = advanced.createDiv({ cls: "rsh-card-content" });

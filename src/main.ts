@@ -40,6 +40,7 @@ import {
 } from "./localdb";
 import { changeMobileStatusBar } from "./misc";
 import { DEFAULT_PROFILER_CONFIG, Profiler } from "./profiler";
+import { normalizeScheduledMergeInterval } from "./scheduledMerge";
 import { RemotelySaveSettingTab } from "./settingsWebdavOnly";
 
 const DEFAULT_SETTINGS = {
@@ -49,6 +50,7 @@ const DEFAULT_SETTINGS = {
   currLogLevel: "info",
   // vaultRandomID: "", // deprecated
   autoRunEveryMilliseconds: -1,
+  scheduledMergeIntervalMinutes: 5,
   initRunAfterMilliseconds: -1,
   syncOnSaveAfterMilliseconds: -1,
   agreeToUploadExtraMetadata: true, // as of 20240106, it's safe to assume every new user agrees with this
@@ -64,7 +66,7 @@ const DEFAULT_SETTINGS = {
   enableStatusBarInfo: true,
   deleteToWhere: "system",
   agreeToUseSyncV3: true,
-  conflictAction: "keep_newer",
+  conflictAction: "smart_conflict",
   howToCleanEmptyFolder: "clean_both",
   protectModifyPercentage: 50,
   syncDirection: "bidirectional",
@@ -559,6 +561,8 @@ export default class RemotelySavePlugin extends Plugin {
 
     this.addSettingTab(new RemotelySaveSettingTab(this.app, this));
 
+    this.app.workspace.onLayoutReady(() => this.configureScheduledMerge());
+
     // this.registerDomEvent(document, "click", (evt: MouseEvent) => {
     //   console.info("click", evt);
     // });
@@ -590,6 +594,9 @@ export default class RemotelySavePlugin extends Plugin {
       serviceType: "webdav",
       password: "",
       autoRunEveryMilliseconds: -1,
+      scheduledMergeIntervalMinutes: normalizeScheduledMergeInterval(
+        stored?.scheduledMergeIntervalMinutes
+      ),
       initRunAfterMilliseconds: -1,
       syncOnSaveAfterMilliseconds: -1,
       syncConfigDir: false,
@@ -599,6 +606,7 @@ export default class RemotelySavePlugin extends Plugin {
       onlyAllowPaths: [],
       skipSizeLargerThan: -1,
       syncDirection: "bidirectional",
+      conflictAction: "smart_conflict",
       encryptionMethod: "rclone-base64",
       agreeToUseSyncV3: true,
     });
@@ -685,20 +693,31 @@ export default class RemotelySavePlugin extends Plugin {
     this.vaultRandomID = vaultRandomID;
   }
 
-  enableAutoSyncIfSet() {
-    if (
-      this.settings.autoRunEveryMilliseconds !== undefined &&
-      this.settings.autoRunEveryMilliseconds !== null &&
-      this.settings.autoRunEveryMilliseconds > 0
-    ) {
-      this.app.workspace.onLayoutReady(() => {
-        const intervalID = window.setInterval(() => {
-          this.syncRun("auto");
-        }, this.settings.autoRunEveryMilliseconds);
-        this.autoRunIntervalID = intervalID;
-        this.registerInterval(intervalID);
-      });
+  configureScheduledMerge() {
+    if (this.autoRunIntervalID !== undefined) {
+      window.clearInterval(this.autoRunIntervalID);
+      this.autoRunIntervalID = undefined;
     }
+
+    const minutes = normalizeScheduledMergeInterval(
+      this.settings.scheduledMergeIntervalMinutes
+    );
+    if (minutes < 0) return;
+
+    const intervalID = window.setInterval(() => {
+      if (this.isSyncing) return;
+      try {
+        const url = new URL(this.settings.webdav.address);
+        if (!(["http:", "https:"].includes(url.protocol) && url.hostname)) return;
+      } catch {
+        return;
+      }
+      void this.syncRun("auto").catch((error) => {
+        console.error("Scheduled merge sync failed", error);
+      });
+    }, minutes * 60 * 1000);
+    this.autoRunIntervalID = intervalID;
+    this.registerInterval(intervalID);
   }
 
   enableInitSyncIfSet() {
