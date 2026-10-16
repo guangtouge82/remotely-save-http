@@ -14,7 +14,7 @@ import type {
 } from "../../src/baseTypes";
 import { copyFile, copyFileOrFolder, copyFolder } from "../../src/copyLogic";
 import type { FakeFs } from "../../src/fsAll";
-import type { FakeFsEncrypt } from "../../src/fsEncrypt";
+import type { FakeFsPlain } from "../../src/fsPlain";
 import {
   type InternalDBs,
   clearPrevSyncRecordByVaultAndProfile,
@@ -37,7 +37,6 @@ import {
   unixTimeToStr,
 } from "../../src/misc";
 import type { Profiler } from "../../src/profiler";
-import { checkProRunnableAndFixInplace } from "./account";
 import { isMergable, mergeFile, tryDuplicateFile } from "./conflictLogic";
 import {
   clearFileContentHistoryByVaultAndProfile,
@@ -54,10 +53,6 @@ const copyEntityAndFixTimeFormat = (
     if (result.mtimeCli === 0) {
       result.mtimeCli = undefined;
     } else {
-      if (serviceType === "s3" || serviceType === "dropbox") {
-        // round to second instead of millisecond
-        result.mtimeCli = Math.floor(result.mtimeCli / 1000.0) * 1000;
-      }
       result.mtimeCliFmt = unixTimeToStr(result.mtimeCli);
     }
   }
@@ -65,10 +60,6 @@ const copyEntityAndFixTimeFormat = (
     if (result.ctimeCli === 0) {
       result.ctimeCli = undefined;
     } else {
-      if (serviceType === "s3" || serviceType === "dropbox") {
-        // round to second instead of millisecond
-        result.ctimeCli = Math.floor(result.ctimeCli / 1000.0) * 1000;
-      }
       result.ctimeCliFmt = unixTimeToStr(result.ctimeCli);
     }
   }
@@ -76,10 +67,6 @@ const copyEntityAndFixTimeFormat = (
     if (result.mtimeSvr === 0) {
       result.mtimeSvr = undefined;
     } else {
-      if (serviceType === "s3" || serviceType === "dropbox") {
-        // round to second instead of millisecond
-        result.mtimeSvr = Math.floor(result.mtimeSvr / 1000.0) * 1000;
-      }
       result.mtimeSvrFmt = unixTimeToStr(result.mtimeSvr);
     }
   }
@@ -87,10 +74,6 @@ const copyEntityAndFixTimeFormat = (
     if (result.prevSyncTime === 0) {
       result.prevSyncTime = undefined;
     } else {
-      if (serviceType === "s3" || serviceType === "dropbox") {
-        // round to second instead of millisecond
-        result.prevSyncTime = Math.floor(result.prevSyncTime / 1000.0) * 1000;
-      }
       result.prevSyncTimeFmt = unixTimeToStr(result.prevSyncTime);
     }
   }
@@ -367,7 +350,7 @@ const ensembleMixedEnties = async (
   syncUnderscoreItems: boolean,
   ignorePaths: string[],
   onlyAllowPaths: string[],
-  fsEncrypt: FakeFsEncrypt,
+  fsEncrypt: FakeFsPlain,
   serviceType: SUPPORTED_SERVICES_TYPE,
 
   profiler: Profiler | undefined
@@ -1405,7 +1388,7 @@ const dispatchOperationToActualV3 = async (
   profileID: string,
   r: MixedEntity,
   fsLocal: FakeFs,
-  fsEncrypt: FakeFsEncrypt,
+  fsEncrypt: FakeFsPlain,
   db: InternalDBs,
   conflictAction: ConflictActionType
 ) => {
@@ -1717,7 +1700,7 @@ const dispatchOperationToActualV3 = async (
 export const doActualSync = async (
   mixedEntityMappings: Record<string, MixedEntity>,
   fsLocal: FakeFs,
-  fsEncrypt: FakeFsEncrypt,
+  fsEncrypt: FakeFsPlain,
   vaultRandomID: string,
   profileID: string,
   concurrency: number,
@@ -1908,7 +1891,7 @@ export type SyncStatusType =
 export async function syncer(
   fsLocal: FakeFs,
   fsRemote: FakeFs,
-  fsEncrypt: FakeFsEncrypt,
+  fsEncrypt: FakeFsPlain,
   profiler: Profiler | undefined,
   db: InternalDBs,
   triggerSource: SyncTriggerSourceType,
@@ -1937,10 +1920,6 @@ export async function syncer(
   let step = 0;
 
   try {
-    // check pro feature
-    // if anything goes wrong, it will throw
-    await checkProRunnableAndFixInplace(settings, pluginVersion, configSaver);
-
     // try mode?
     await notifyFunc?.(triggerSource, step);
 

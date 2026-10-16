@@ -1,244 +1,95 @@
-/* set the styles */
-
-.password-second-confirm {
-  font-weight: bold;
+/* Remotely Save HTTP settings */
+.rsh-settings {
+  --rsh-line: var(--background-modifier-border);
+  --rsh-soft: var(--background-secondary);
+  max-width: 860px;
+  padding: 8px 12px 48px 0;
+  color: var(--text-normal);
 }
 
-.password-disclaimer {
-  font-weight: bold;
+.rsh-settings .rsh-hero { margin: 0 0 24px; }
+.rsh-settings .rsh-eyebrow {
+  display: inline-flex;
+  padding: 5px 10px;
+  border-radius: 999px;
+  color: var(--interactive-accent);
+  background: var(--background-modifier-hover);
+  font-size: var(--font-smallest);
+  font-weight: 700;
+  letter-spacing: .08em;
 }
+.rsh-settings .rsh-hero h1 { margin: 12px 0 6px; font-size: 1.7em; line-height: 1.2; }
+.rsh-settings .rsh-hero p { margin: 0; color: var(--text-muted); line-height: 1.6; }
 
-.encryptionmethod-second-confirm {
-  font-weight: bold;
+.rsh-settings .rsh-card {
+  margin: 0 0 16px;
+  border: 1px solid var(--rsh-line);
+  border-radius: 14px;
+  background: var(--background-primary);
+  overflow: hidden;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, .035);
 }
-
-.settings-auth-related {
-  border-top: 1px solid var(--background-modifier-border);
-  padding-top: 18px;
+.rsh-settings .rsh-card-heading { padding: 19px 22px 13px; border-bottom: 1px solid var(--rsh-line); }
+.rsh-settings .rsh-card-heading h2 { margin: 0 0 4px; font-size: 1.08em; line-height: 1.4; }
+.rsh-settings .rsh-card-heading p { margin: 0; color: var(--text-muted); font-size: var(--font-smaller); line-height: 1.5; }
+.rsh-settings .rsh-card-content { padding: 4px 22px 18px; }
+.rsh-settings .setting-item { min-height: 0; padding: 16px 0; }
+.rsh-settings .setting-item:last-child { border-bottom: 0; }
+.rsh-settings .setting-item-name { font-weight: 600; }
+.rsh-settings .setting-item-description { margin-top: 4px; line-height: 1.45; }
+.rsh-settings .setting-item-control { min-width: 0; }
+.rsh-settings input[type="text"],
+.rsh-settings input[type="password"],
+.rsh-settings textarea { width: 100%; min-width: 0; }
+.rsh-settings .rsh-address-row { display: block; }
+.rsh-settings .rsh-address-row .setting-item-control { margin-top: 12px; }
+.rsh-settings .rsh-address-row input { width: 100%; }
+.rsh-settings .rsh-credentials { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.rsh-settings .rsh-credentials .setting-item { display: block; border-bottom: 0; }
+.rsh-settings .rsh-credentials .setting-item-control { margin-top: 9px; }
+.rsh-settings .rsh-preview-label { color: var(--text-muted); font-size: var(--font-smaller); margin: 2px 0 7px; }
+.rsh-settings .rsh-path-preview {
+  padding: 10px 12px;
+  border: 1px solid var(--rsh-line);
+  border-radius: 8px;
+  background: var(--rsh-soft);
+  color: var(--text-normal);
+  font-family: var(--font-monospace);
+  overflow-wrap: anywhere;
 }
-
-.settings-percentage-custom-hide {
-  display: none;
+.rsh-settings .rsh-advanced summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 18px 22px;
+  font-weight: 600;
 }
-
-.settings-encryption-method-hide {
-  display: none;
+.rsh-settings .rsh-advanced summary::-webkit-details-marker { display: none; }
+.rsh-settings .rsh-advanced summary::after { content: "⌄"; float: right; color: var(--text-muted); }
+.rsh-settings .rsh-advanced[open] summary::after { transform: rotate(180deg); }
+.rsh-settings .rsh-advanced[open] summary { border-bottom: 1px solid var(--rsh-line); }
+.rsh-settings .rsh-advanced-description { color: var(--text-muted); font-size: var(--font-smaller); line-height: 1.5; }
+.rsh-settings .rsh-advanced textarea { min-height: 80px; font-family: var(--font-monospace); }
+.rsh-settings .rsh-status {
+  margin: 16px 0 14px;
+  padding: 11px 13px;
+  border-radius: 8px;
+  background: var(--rsh-soft);
+  color: var(--text-muted);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }
-
-.s3-disclaimer {
-  font-weight: bold;
-}
-.s3-hide {
-  display: none;
-}
-
-.dropbox-disclaimer {
-  font-weight: bold;
-}
-.dropbox-hide {
-  display: none;
-}
-
-.dropbox-auth-button-hide {
-  display: none;
-}
-
-.dropbox-revoke-auth-button-hide {
-  display: none;
-}
-
-.onedrive-disclaimer {
-  font-weight: bold;
-}
-.onedrive-hide {
-  display: none;
-}
-
-.onedrive-auth-button-hide {
-  display: none;
-}
-
-.onedrive-revoke-auth-button-hide {
-  display: none;
-}
-
-.onedrivefull-allow-to-use-hide {
-  display: none;
-}
-
-.onedrivefull-disclaimer {
-  font-weight: bold;
-}
-.onedrivefull-hide {
-  display: none;
-}
-
-.onedrivefull-auth-button-hide {
-  display: none;
-}
-
-.onedrivefull-revoke-auth-button-hide {
-  display: none;
-}
-
-.webdav-disclaimer {
-  font-weight: bold;
-}
-.webdav-hide {
-  display: none;
-}
-
-.webdav-customheaders-textarea {
-  font-family: monospace;
-}
-
-.webdis-disclaimer {
-  font-weight: bold;
-}
-.webdis-hide {
-  display: none;
-}
-
-.googledrive-disclaimer {
-  font-weight: bold;
-}
-.googledrive-hide {
-  display: none;
-}
-
-.googledrive-allow-to-use-hide {
-  display: none;
-}
-
-.googledrive-auth-button-hide {
-  display: none;
-}
-
-.googledrive-revoke-auth-button-hide {
-  display: none;
-}
-
-.box-disclaimer {
-  font-weight: bold;
-}
-.box-hide {
-  display: none;
-}
-
-.box-allow-to-use-hide {
-  display: none;
-}
-
-.box-auth-button-hide {
-  display: none;
-}
-
-.box-revoke-auth-button-hide {
-  display: none;
-}
-
-.pcloud-disclaimer {
-  font-weight: bold;
-}
-.pcloud-hide {
-  display: none;
-}
-
-.pcloud-allow-to-use-hide {
-  display: none;
-}
-
-.pcloud-auth-button-hide {
-  display: none;
-}
-
-.pcloud-revoke-auth-button-hide {
-  display: none;
-}
-
-.yandexdisk-disclaimer {
-  font-weight: bold;
-}
-.yandexdisk-hide {
-  display: none;
-}
-
-.yandexdisk-allow-to-use-hide {
-  display: none;
-}
-
-.yandexdisk-auth-button-hide {
-  display: none;
-}
-
-.yandexdisk-revoke-auth-button-hide {
-  display: none;
-}
-
-.koofr-disclaimer {
-  font-weight: bold;
-}
-.koofr-hide {
-  display: none;
-}
-
-.koofr-allow-to-use-hide {
-  display: none;
-}
-
-.koofr-auth-button-hide {
-  display: none;
-}
-
-.koofr-revoke-auth-button-hide {
-  display: none;
-}
-
-.azureblobstorage-disclaimer {
-  font-weight: bold;
-}
-.azureblobstorage-hide {
-  display: none;
-}
-
-.azureblobstorage-allow-to-use-hide {
-  display: none;
-}
-
-.qrcode-img {
-  width: 350px;
-  height: 350px;
-}
-
-.ignorepaths-textarea {
-  font-family: monospace;
-}
-
-.onlyallowpaths-textarea {
-  font-family: monospace;
-}
-
-.logtohttpserver-warning {
-  color: red;
-  font-weight: bolder;
-}
-
-.setting-need-wrapping .setting-item-control {
-  /* flex-wrap: wrap; */
-  display: grid;
-}
-
-.pro-disclaimer {
-  font-weight: bold;
-}
-.pro-hide {
-  display: none;
-}
-
-.pro-auth-button-hide {
-  display: none;
-}
-
-.pro-revoke-auth-button-hide {
-  display: none;
+.rsh-settings .rsh-status::before { content: "●"; margin-right: 9px; font-size: .75em; }
+.rsh-settings .rsh-status[data-state="warning"],
+.rsh-settings .rsh-status[data-state="error"] { color: var(--text-error); }
+.rsh-settings .rsh-status[data-state="success"] { color: var(--text-success); }
+.rsh-settings .rsh-status[data-state="checking"] { color: var(--text-accent); }
+.rsh-settings .rsh-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.rsh-settings .rsh-actions .setting-item { border: 0; padding: 0; }
+.rsh-settings .rsh-actions .setting-item-info { display: none; }
+.rsh-settings .rsh-actions button { min-width: 118px; }
+@media (max-width: 650px) {
+  .rsh-settings { padding-right: 0; }
+  .rsh-settings .rsh-credentials { grid-template-columns: 1fr; gap: 0; }
+  .rsh-settings .rsh-card-heading, .rsh-settings .rsh-card-content { padding-left: 16px; padding-right: 16px; }
+  .rsh-settings .rsh-advanced summary { padding-left: 16px; padding-right: 16px; }
 }

@@ -1527,7 +1527,7 @@ export class RemotelySaveSettingTab extends PluginSettingTab {
       .setDesc(t("settings_webdav_addr_desc"))
       .addText((text) =>
         text
-          .setPlaceholder("")
+          .setPlaceholder("http:// or https://")
           .setValue(this.plugin.settings.webdav.address)
           .onChange(async (value) => {
             this.plugin.settings.webdav.address = value.trim();
