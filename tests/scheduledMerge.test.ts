@@ -1,21 +1,21 @@
 import assert from "node:assert/strict";
-import { normalizeScheduledMergeInterval } from "../src/scheduledMerge";
+import { normalizeScheduledMergeIntervalSeconds } from "../src/scheduledMerge";
 
 describe("scheduled merge interval", () => {
-  it("defaults existing installations to five minutes", () => {
-    assert.equal(normalizeScheduledMergeInterval(undefined), 5);
-    assert.equal(normalizeScheduledMergeInterval(null), 5);
+  it("defaults to five seconds", () => {
+    assert.equal(normalizeScheduledMergeIntervalSeconds(undefined), 5);
+    assert.equal(normalizeScheduledMergeIntervalSeconds(null), 5);
   });
 
   it("retains supported intervals and the disabled setting", () => {
-    for (const minutes of [-1, 1, 5, 10, 30]) {
-      assert.equal(normalizeScheduledMergeInterval(minutes), minutes);
+    for (const seconds of [-1, 5, 15, 60, 300]) {
+      assert.equal(normalizeScheduledMergeIntervalSeconds(seconds), seconds);
     }
   });
 
   it("rejects malformed or excessively frequent intervals", () => {
-    assert.equal(normalizeScheduledMergeInterval(0), 5);
-    assert.equal(normalizeScheduledMergeInterval(0.1), 5);
-    assert.equal(normalizeScheduledMergeInterval("1"), 5);
+    assert.equal(normalizeScheduledMergeIntervalSeconds(0), 5);
+    assert.equal(normalizeScheduledMergeIntervalSeconds(1), 5);
+    assert.equal(normalizeScheduledMergeIntervalSeconds("5"), 5);
   });
 });

@@ -1,8 +1,8 @@
-export const SCHEDULED_MERGE_INTERVALS_MINUTES = [1, 5, 10, 30] as const;
+export const SCHEDULED_MERGE_INTERVALS_SECONDS = [5, 15, 60, 300] as const;
 
-export function normalizeScheduledMergeInterval(value: unknown): number {
+export function normalizeScheduledMergeIntervalSeconds(value: unknown): number {
   return value === -1 ||
-    SCHEDULED_MERGE_INTERVALS_MINUTES.some((minutes) => minutes === value)
+    SCHEDULED_MERGE_INTERVALS_SECONDS.some((seconds) => seconds === value)
     ? value as number
     : 5;
 }

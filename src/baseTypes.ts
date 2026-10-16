@@ -164,6 +164,7 @@ export interface RemotelySavePluginSettings {
   currLogLevel?: string;
   autoRunEveryMilliseconds?: number;
   scheduledMergeIntervalMinutes?: number;
+  scheduledMergeIntervalSeconds?: number;
   initRunAfterMilliseconds?: number;
   syncOnSaveAfterMilliseconds?: number;
 

@@ -40,7 +40,7 @@ import {
 } from "./localdb";
 import { changeMobileStatusBar } from "./misc";
 import { DEFAULT_PROFILER_CONFIG, Profiler } from "./profiler";
-import { normalizeScheduledMergeInterval } from "./scheduledMerge";
+import { normalizeScheduledMergeIntervalSeconds } from "./scheduledMerge";
 import { RemotelySaveSettingTab } from "./settingsWebdavOnly";
 
 const DEFAULT_SETTINGS = {
@@ -50,7 +50,7 @@ const DEFAULT_SETTINGS = {
   currLogLevel: "info",
   // vaultRandomID: "", // deprecated
   autoRunEveryMilliseconds: -1,
-  scheduledMergeIntervalMinutes: 5,
+  scheduledMergeIntervalSeconds: 5,
   initRunAfterMilliseconds: -1,
   syncOnSaveAfterMilliseconds: -1,
   agreeToUploadExtraMetadata: true, // as of 20240106, it's safe to assume every new user agrees with this
@@ -68,7 +68,7 @@ const DEFAULT_SETTINGS = {
   agreeToUseSyncV3: true,
   conflictAction: "smart_conflict",
   howToCleanEmptyFolder: "clean_both",
-  protectModifyPercentage: 50,
+  protectModifyPercentage: -1,
   syncDirection: "bidirectional",
   obfuscateSettingFile: true,
   enableMobileStatusBar: false,
@@ -306,6 +306,7 @@ export default class RemotelySavePlugin extends Plugin {
     };
 
     const ribboonFunc = async (s: SyncTriggerSourceType, step: number) => {
+      if (s === "auto") return;
       if (step === 1) {
         if (this.syncRibbon !== undefined) {
           setIcon(this.syncRibbon, iconNameSyncRunning);
@@ -332,17 +333,17 @@ export default class RemotelySavePlugin extends Plugin {
       step: number,
       everythingOk: boolean
     ) => {
-      if (step === 1) {
+      if (step === 1 && s !== "auto") {
         // change status to "syncing..." on statusbar
         this.updateLastSyncMsg(s, "syncing", -1, -1);
       } else if (step === 8 && everythingOk) {
         const ts = Date.now();
         await upsertLastSuccessSyncTimeByVault(this.db, this.vaultRandomID, ts);
-        this.updateLastSyncMsg(s, "not_syncing", ts, null); // hack: 'not_syncing'
+        if (s !== "auto") this.updateLastSyncMsg(s, "not_syncing", ts, null); // hack: 'not_syncing'
       } else if (!everythingOk) {
         const ts = Date.now();
         await upsertLastFailedSyncTimeByVault(this.db, this.vaultRandomID, ts);
-        this.updateLastSyncMsg(s, "not_syncing", null, ts);
+        if (s !== "auto") this.updateLastSyncMsg(s, "not_syncing", null, ts);
       }
     };
 
@@ -357,6 +358,7 @@ export default class RemotelySavePlugin extends Plugin {
       pathName: string,
       decision: string
     ) => {
+      if (s === "auto") return;
       this.setCurrSyncMsg(
         t,
         s,
@@ -386,32 +388,34 @@ export default class RemotelySavePlugin extends Plugin {
 
     const configSaver = async () => await this.saveSettings();
 
-    await syncer(
-      fsLocal,
-      fsRemote,
-      fsEncrypt,
-      profiler,
-      this.db,
-      triggerSource,
-      profileID,
-      this.vaultRandomID,
-      this.app.vault.configDir,
-      this.settings,
-      this.manifest.version,
-      configSaver,
-      getProtectError,
-      markIsSyncingFunc,
-      notifyFunc,
-      errNotifyFunc,
-      ribboonFunc,
-      statusBarFunc,
-      callbackSyncProcess
-    );
-
-    fsEncrypt.closeResources();
-    (profiler as Profiler | undefined)?.clear();
-
-    this.syncEvent?.trigger("SYNC_DONE");
+    try {
+      await syncer(
+        fsLocal,
+        fsRemote,
+        fsEncrypt,
+        profiler,
+        this.db,
+        triggerSource,
+        profileID,
+        this.vaultRandomID,
+        this.app.vault.configDir,
+        this.settings,
+        this.manifest.version,
+        configSaver,
+        getProtectError,
+        markIsSyncingFunc,
+        notifyFunc,
+        errNotifyFunc,
+        ribboonFunc,
+        statusBarFunc,
+        callbackSyncProcess
+      );
+    } finally {
+      this.isSyncing = false;
+      fsEncrypt.closeResources();
+      profiler?.clear();
+      this.syncEvent?.trigger("SYNC_DONE");
+    }
   }
 
   async onload() {
@@ -594,8 +598,10 @@ export default class RemotelySavePlugin extends Plugin {
       serviceType: "webdav",
       password: "",
       autoRunEveryMilliseconds: -1,
-      scheduledMergeIntervalMinutes: normalizeScheduledMergeInterval(
-        stored?.scheduledMergeIntervalMinutes
+      // Move old positive minute settings to the new five-second default; keep Off.
+      scheduledMergeIntervalSeconds: normalizeScheduledMergeIntervalSeconds(
+        stored?.scheduledMergeIntervalSeconds ??
+          (stored?.scheduledMergeIntervalMinutes === -1 ? -1 : undefined)
       ),
       initRunAfterMilliseconds: -1,
       syncOnSaveAfterMilliseconds: -1,
@@ -607,6 +613,8 @@ export default class RemotelySavePlugin extends Plugin {
       skipSizeLargerThan: -1,
       syncDirection: "bidirectional",
       conflictAction: "smart_conflict",
+      // This WebDAV build must not abort when a legitimate change affects most files.
+      protectModifyPercentage: -1,
       encryptionMethod: "rclone-base64",
       agreeToUseSyncV3: true,
     });
@@ -699,10 +707,10 @@ export default class RemotelySavePlugin extends Plugin {
       this.autoRunIntervalID = undefined;
     }
 
-    const minutes = normalizeScheduledMergeInterval(
-      this.settings.scheduledMergeIntervalMinutes
+    const seconds = normalizeScheduledMergeIntervalSeconds(
+      this.settings.scheduledMergeIntervalSeconds
     );
-    if (minutes < 0) return;
+    if (seconds < 0) return;
 
     const intervalID = window.setInterval(() => {
       if (this.isSyncing) return;
@@ -715,7 +723,7 @@ export default class RemotelySavePlugin extends Plugin {
       void this.syncRun("auto").catch((error) => {
         console.error("Scheduled merge sync failed", error);
       });
-    }, minutes * 60 * 1000);
+    }, seconds * 1000);
     this.autoRunIntervalID = intervalID;
     this.registerInterval(intervalID);
   }

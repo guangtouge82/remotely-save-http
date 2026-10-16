@@ -82,13 +82,13 @@ export class RemotelySaveSettingTab extends PluginSettingTab {
       .setDesc(t("webdav_only_schedule_hint"))
       .addDropdown((dropdown) => dropdown
         .addOption("-1", t("webdav_only_schedule_off"))
-        .addOption("1", t("webdav_only_schedule_1min"))
-        .addOption("5", t("webdav_only_schedule_5min"))
-        .addOption("10", t("webdav_only_schedule_10min"))
-        .addOption("30", t("webdav_only_schedule_30min"))
-        .setValue(String(this.plugin.settings.scheduledMergeIntervalMinutes ?? 5))
+        .addOption("5", t("webdav_only_schedule_5sec"))
+        .addOption("15", t("webdav_only_schedule_15sec"))
+        .addOption("60", t("webdav_only_schedule_1min"))
+        .addOption("300", t("webdav_only_schedule_5min"))
+        .setValue(String(this.plugin.settings.scheduledMergeIntervalSeconds ?? 5))
         .onChange(async (value) => {
-          this.plugin.settings.scheduledMergeIntervalMinutes = Number(value);
+          this.plugin.settings.scheduledMergeIntervalSeconds = Number(value);
           await this.plugin.saveSettings();
           this.plugin.configureScheduledMerge();
         }));
