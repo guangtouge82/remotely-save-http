@@ -210,6 +210,7 @@ const fromWebdavItemToEntity = (x: FileStat, remoteBaseDir: string): Entity => {
     mtimeCli: mtimeSvr, // TODO: no universal way to set mtime in webdav
     size: x.size,
     sizeRaw: x.size,
+    etag: x.etag ?? undefined,
   };
 };
 

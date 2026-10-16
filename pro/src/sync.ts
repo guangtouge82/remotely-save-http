@@ -38,6 +38,7 @@ import {
 } from "../../src/misc";
 import type { Profiler } from "../../src/profiler";
 import { isMergable, mergeFile, tryDuplicateFile } from "./conflictLogic";
+import { remoteEtagChanged, remoteMatchesPreviousVersion } from "../../src/remoteVersion";
 import {
   clearFileContentHistoryByVaultAndProfile,
   getFileContentHistoryByVaultAndProfile,
@@ -521,7 +522,7 @@ const ensembleMixedEnties = async (
  * Basically follow the sync algorithm of https://github.com/Jwink3101/syncrclone
  * Also deal with syncDirection which makes it more complicated
  */
-const getSyncPlanInplace = async (
+export const getSyncPlanInplace = async (
   mixedEntityMappings: Record<string, MixedEntity>,
   skipSizeLargerThan: number,
   conflictAction: ConflictActionType,
@@ -760,7 +761,8 @@ const getSyncPlanInplace = async (
         if (
           (local.mtimeCli === remote.mtimeCli ||
             local.mtimeCli === remote.mtimeSvr) &&
-          local.sizeEnc === remote.sizeEnc
+          local.sizeEnc === remote.sizeEnc &&
+          !remoteEtagChanged(prevSync, remote)
         ) {
           // completely equal / identical
           mixedEntry.decisionBranch = 2;
@@ -773,10 +775,7 @@ const getSyncPlanInplace = async (
           const localEqualPrevSync =
             prevSync?.mtimeCli === local.mtimeCli &&
             prevSync?.sizeEnc === local.sizeEnc;
-          const remoteEqualPrevSync =
-            (prevSync?.mtimeSvr === remote.mtimeCli ||
-              prevSync?.mtimeSvr === remote.mtimeSvr) &&
-            prevSync?.sizeEnc === remote.sizeEnc;
+          const remoteEqualPrevSync = remoteMatchesPreviousVersion(prevSync, remote);
 
           if (localEqualPrevSync && !remoteEqualPrevSync) {
             // If only one compares true (no prev also means it compares False), the other is modified. Backup and sync.
@@ -997,11 +996,7 @@ const getSyncPlanInplace = async (
             mixedEntry.change = false;
             keptFolder.add(getParentFolder(key));
           }
-        } else if (
-          (prevSync.mtimeSvr === remote.mtimeCli ||
-            prevSync.mtimeSvr === remote.mtimeSvr) &&
-          prevSync.sizeEnc === remote.sizeEnc
-        ) {
+        } else if (remoteMatchesPreviousVersion(prevSync, remote)) {
           // if B is in the previous list and UNMODIFIED, B has been deleted by A
           if (syncDirection === "incremental_push_only") {
             mixedEntry.decisionBranch = 29;
@@ -1431,6 +1426,14 @@ const dispatchOperationToActualV3 = async (
     // so that next time we can determine the change delta
 
     if (r.prevSync !== undefined) {
+      if (r.remote?.etag && !r.prevSync.etag) {
+        await upsertPrevSyncRecordByVaultAndProfile(
+          db,
+          vaultRandomID,
+          profileID,
+          { ...r.prevSync, etag: r.remote.etag }
+        );
+      }
       // if we have prevSync,
       // we don't need to update prevSync, because the record is already there!
 
