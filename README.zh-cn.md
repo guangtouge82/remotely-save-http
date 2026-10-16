@@ -13,9 +13,13 @@
 
 这个版本不启用自动或定时同步、其他云服务及文件端到端加密，也不会同步仓库的 `.obsidian` 配置目录。首次同步或从其他同步插件切换前，请备份仓库：双向同步可能更新或删除本地及远端文件。
 
-## 从源码安装
+## 使用 BRAT 安装（包括 Obsidian 移动端）
 
-本插件需要手动安装，不能在 Obsidian 社区插件商店中直接搜索安装。
+这个分支不能在 Obsidian 社区插件商店中直接搜索安装。先安装 [BRAT](https://github.com/TfTHacker/obsidian42-brat)，运行它的“Add a beta plugin for testing”命令，输入 `https://github.com/guangtouge82/remotely-save-http`，选择最新 Release，然后在 Obsidian 社区插件设置中启用 **Remotely Save HTTP**。
+
+BRAT 从本仓库的 GitHub Release 附件下载 `manifest.json`、`main.js` 和 `styles.css`。仓库里的源码本身不能直接作为安装包。
+
+## 从源码安装
 
 1. 克隆本仓库，使用 Node.js 和 npm 构建：
 

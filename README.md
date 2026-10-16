@@ -13,9 +13,13 @@ A WebDAV-only fork of [Remotely Save](https://github.com/remotely-save/remotely-
 
 This build does not enable automatic or scheduled sync, other cloud providers, or end-to-end file encryption. It does not sync the vault's `.obsidian` configuration folder. Back up your vault before the first sync or when switching from another sync plugin: bidirectional sync can update or delete files on either side.
 
-## Install from source
+## Install with BRAT (including Obsidian Mobile)
 
-This plugin is installed manually; it is not listed in Obsidian's community plugin browser.
+This fork is not in Obsidian's community plugin browser. Install [BRAT](https://github.com/TfTHacker/obsidian42-brat), use its **Add a beta plugin for testing** command, and enter `https://github.com/guangtouge82/remotely-save-http`. Select the latest release, then enable **Remotely Save HTTP** in Obsidian's community plugin settings.
+
+BRAT downloads `manifest.json`, `main.js`, and `styles.css` from this repository's GitHub Release assets. The repository's source tree alone is not an installable release.
+
+## Install from source
 
 1. Clone this repository and build it with Node.js and npm:
 
