@@ -24,10 +24,18 @@ describe("Space + Enter for Markdown lists", () => {
     });
   });
 
-  it("creates an unchecked bullet below a checkbox item", () => {
+  it("preserves the task-list type in a nested item", () => {
+    assert.deepEqual(childListLineAfterSpace("- [ ] hello ", 12), {
+      fromCh: 11,
+      insertion: "\n  - [ ] ",
+    });
     assert.deepEqual(childListLineAfterSpace("- [x] Done ", 11), {
       fromCh: 10,
-      insertion: "\n  - ",
+      insertion: "\n  - [ ] ",
+    });
+    assert.deepEqual(childListLineAfterSpace("2. [>] Waiting ", 15), {
+      fromCh: 14,
+      insertion: "\n   1. [ ] ",
     });
   });
 
@@ -36,5 +44,6 @@ describe("Space + Enter for Markdown lists", () => {
     assert.equal(childListLineAfterSpace("- Parent ", 5), null);
     assert.equal(childListLineAfterSpace("Plain text ", 11), null);
     assert.equal(childListLineAfterSpace("- ", 2), null);
+    assert.equal(childListLineAfterSpace("- [ ] ", 6), null);
   });
 });

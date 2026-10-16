@@ -30,7 +30,7 @@ While editing a Markdown list, type a space after the item's text and press Ente
   - Child
 ```
 
-The cursor moves to the new child item, where you can type `Child`. Enter without a trailing space retains Obsidian's normal sibling-item behavior. Plain text and selections are unaffected. Numbered lists work too.
+The cursor moves to the new child item, where you can type `Child`. Task list items keep their checkbox type: `- [ ] Parent ` creates an indented `- [ ] ` child. A completed parent also creates an unchecked child. Enter without a trailing space retains Obsidian's normal sibling-item behavior. Plain text and selections are unaffected. Numbered lists work too.
 
 ## Install from source
 

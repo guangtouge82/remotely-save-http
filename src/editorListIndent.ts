@@ -9,10 +9,12 @@ export function childListLineAfterSpace(line: string, cursorCh: number): {
   if (!match) return null;
 
   const indent = match[1];
+  const task = /^\[[^\]\r\n]\](?:[ \t]+(.*))?$/.exec(match[3]);
+  if (task && !task[1]?.trim()) return null;
   const marker = /^\d/.test(match[2]) ? "1. " : `${match[2]} `;
   const fromCh = line.length - match[4].length;
   return {
     fromCh,
-    insertion: `\n${indent}${" ".repeat(match[2].length + 1)}${marker}`,
+    insertion: `\n${indent}${" ".repeat(match[2].length + 1)}${marker}${task ? "[ ] " : ""}`,
   };
 }
