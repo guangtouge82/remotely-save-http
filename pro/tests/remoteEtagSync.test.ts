@@ -63,4 +63,21 @@ describe("WebDAV ETag changes in the sync plan", () => {
   it("keeps a changed server file when the local file was deleted", async () => {
     assert.equal(await decisionFor(undefined), "remote_is_modified_then_pull");
   });
+
+  it("plans both directions for newly added files", async () => {
+    const newFile: Entity = {
+      key: "new.md", keyRaw: "new.md", sizeRaw: 4, sizeEnc: 4,
+      mtimeCli: 2000, mtimeSvr: 2000,
+    };
+    for (const [entry, expected] of [
+      [{ key: "new.md", local: newFile }, "local_is_created_then_push"],
+      [{ key: "new.md", remote: newFile }, "remote_is_created_then_pull"],
+    ] as const) {
+      const plan = await getSyncPlanInplace(
+        { "new.md": entry }, -1, "smart_conflict", "bidirectional",
+        undefined, settings, "auto", ".obsidian"
+      );
+      assert.equal(plan["new.md"].decision, expected);
+    }
+  });
 });

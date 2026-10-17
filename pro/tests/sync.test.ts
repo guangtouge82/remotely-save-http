@@ -2,6 +2,15 @@ import { strict as assert } from "assert";
 import { checkIsSkipItemOrNotByName } from "../src/sync";
 
 describe("Sync: checkIsSkipItemOrNotByName", () => {
+  it("includes new underscore files while still excluding Obsidian settings", () => {
+    const shouldSkip = (key: string) => checkIsSkipItemOrNotByName(
+      key, false, false, true, ".obsidian", [], []
+    ).finalIsIgnored;
+    assert.equal(shouldSkip("_new.md"), false);
+    assert.equal(shouldSkip("_notes/new.md"), false);
+    assert.equal(shouldSkip(".obsidian/plugins/remotely-save-http/data.json"), true);
+  });
+
   it("should be ok everywhere for empty config", async () => {
     let isSkip = checkIsSkipItemOrNotByName(
       "xxx.md",

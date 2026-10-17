@@ -78,6 +78,8 @@ The connection and sync buttons require a valid `http://` or `https://` address.
 
 The **Scheduled merge sync** setting defaults to every 5 seconds while Obsidian is open. Choose 15 seconds, 1 minute, 5 minutes, or Off as needed. Each run reads the server's file list first and compares it with the local vault and the previous sync record; only detected changes cause file transfers. When the WebDAV server provides ETags, the comparison also detects changes with the same file size and modified time. A newer remote change is pulled, a newer local change is uploaded, and changes on both sides use smart conflict handling. The former 50% mass-change limit is disabled in this WebDAV build, so it cannot stop a valid sync. Scheduled checks do not show update notices or flash the sync icon. A scheduled run is skipped if another sync is active or no valid WebDAV address is configured. On mobile, timers pause while Obsidian is suspended in the background.
 
+New files and folders beginning with `_` are included. Obsidian's `.obsidian` settings and other dot-prefixed paths remain excluded.
+
 When both devices change a Markdown file, smart conflict handling attempts to merge it. Edits to the same lines can produce conflict markers that need review. Files that cannot be merged are preserved as separate copies. Frequent sync reduces the conflict window but cannot guarantee conflict-free edits across devices.
 
 ## HTTP and local settings
