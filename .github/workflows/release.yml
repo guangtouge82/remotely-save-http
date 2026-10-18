@@ -1,0 +1,35 @@
+name: Release Obsidian plugin
+
+on:
+  push:
+    tags:
+      - "[0-9]*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Verify release version
+        run: |
+          test "$(node -p "require('./manifest.json').version")" = "$GITHUB_REF_NAME"
+          test "$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+      - run: npm install
+      - run: npm test
+      - run: npm run build
+      - name: Publish release assets for BRAT
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          files: |
+            main.js
+            manifest.json
+            styles.css
+          fail_on_unmatched_files: true
+          generate_release_notes: true

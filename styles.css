@@ -1,0 +1,124 @@
+/* Remotely Save HTTP settings */
+.cm-editor .rsh-narrow-exit {
+  position: absolute;
+  top: 10px;
+  right: 18px;
+  z-index: 20;
+  padding: 5px 11px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 999px;
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  box-shadow: var(--shadow-s);
+  cursor: pointer;
+}
+.cm-editor .rsh-narrow-exit[hidden] { display: none; }
+.cm-editor .rsh-narrow-exit:hover { background: var(--background-modifier-hover); }
+
+/* Obsidian puts the heading level on the text span in Live Preview. */
+.cm-editor.rsh-narrow-active .cm-header-1 { --rsh-heading-size: max(var(--h1-size, 1.8em), 1.6em); --rsh-heading-weight: 700; --rsh-heading-color: var(--h1-color, var(--text-normal)); }
+.cm-editor.rsh-narrow-active .cm-header-2 { --rsh-heading-size: max(var(--h2-size, 1.6em), 1.35em); --rsh-heading-weight: 700; --rsh-heading-color: var(--h2-color, var(--text-normal)); }
+.cm-editor.rsh-narrow-active .cm-header-3 { --rsh-heading-size: max(var(--h3-size, 1.37em), 1.2em); --rsh-heading-weight: 650; --rsh-heading-color: var(--h3-color, var(--text-normal)); }
+.cm-editor.rsh-narrow-active .cm-header-4 { --rsh-heading-size: var(--h4-size, 1.2em); --rsh-heading-weight: 600; --rsh-heading-color: var(--h4-color, var(--text-normal)); }
+.cm-editor.rsh-narrow-active .cm-header-5 { --rsh-heading-size: var(--h5-size, 1.1em); --rsh-heading-weight: 600; --rsh-heading-color: var(--h5-color, var(--text-normal)); }
+.cm-editor.rsh-narrow-active .cm-header-6 { --rsh-heading-size: var(--h6-size, 1em); --rsh-heading-weight: 600; --rsh-heading-color: var(--h6-color, var(--text-normal)); }
+.cm-editor.rsh-narrow-active .cm-header {
+  font-size: var(--rsh-heading-size) !important;
+  font-weight: var(--rsh-heading-weight) !important;
+  color: var(--rsh-heading-color);
+}
+
+.rsh-settings {
+  --rsh-line: var(--background-modifier-border);
+  --rsh-soft: var(--background-secondary);
+  max-width: 860px;
+  padding: 8px 12px 48px 0;
+  color: var(--text-normal);
+}
+
+.rsh-settings .rsh-hero { margin: 0 0 24px; }
+.rsh-settings .rsh-eyebrow {
+  display: inline-flex;
+  padding: 5px 10px;
+  border-radius: 999px;
+  color: var(--interactive-accent);
+  background: var(--background-modifier-hover);
+  font-size: var(--font-smallest);
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+.rsh-settings .rsh-hero h1 { margin: 12px 0 6px; font-size: 1.7em; line-height: 1.2; }
+.rsh-settings .rsh-hero p { margin: 0; color: var(--text-muted); line-height: 1.6; }
+
+.rsh-settings .rsh-card {
+  margin: 0 0 16px;
+  border: 1px solid var(--rsh-line);
+  border-radius: 14px;
+  background: var(--background-primary);
+  overflow: hidden;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, .035);
+}
+.rsh-settings .rsh-card-heading { padding: 19px 22px 13px; border-bottom: 1px solid var(--rsh-line); }
+.rsh-settings .rsh-card-heading h2 { margin: 0 0 4px; font-size: 1.08em; line-height: 1.4; }
+.rsh-settings .rsh-card-heading p { margin: 0; color: var(--text-muted); font-size: var(--font-smaller); line-height: 1.5; }
+.rsh-settings .rsh-card-content { padding: 4px 22px 18px; }
+.rsh-settings .setting-item { min-height: 0; padding: 16px 0; }
+.rsh-settings .setting-item:last-child { border-bottom: 0; }
+.rsh-settings .setting-item-name { font-weight: 600; }
+.rsh-settings .setting-item-description { margin-top: 4px; line-height: 1.45; }
+.rsh-settings .setting-item-control { min-width: 0; }
+.rsh-settings input[type="text"],
+.rsh-settings input[type="password"],
+.rsh-settings textarea { width: 100%; min-width: 0; }
+.rsh-settings .rsh-address-row { display: block; }
+.rsh-settings .rsh-address-row .setting-item-control { margin-top: 12px; }
+.rsh-settings .rsh-address-row input { width: 100%; }
+.rsh-settings .rsh-credentials { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.rsh-settings .rsh-credentials .setting-item { display: block; border-bottom: 0; }
+.rsh-settings .rsh-credentials .setting-item-control { margin-top: 9px; }
+.rsh-settings .rsh-preview-label { color: var(--text-muted); font-size: var(--font-smaller); margin: 2px 0 7px; }
+.rsh-settings .rsh-path-preview {
+  padding: 10px 12px;
+  border: 1px solid var(--rsh-line);
+  border-radius: 8px;
+  background: var(--rsh-soft);
+  color: var(--text-normal);
+  font-family: var(--font-monospace);
+  overflow-wrap: anywhere;
+}
+.rsh-settings .rsh-advanced summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 18px 22px;
+  font-weight: 600;
+}
+.rsh-settings .rsh-advanced summary::-webkit-details-marker { display: none; }
+.rsh-settings .rsh-advanced summary::after { content: "⌄"; float: right; color: var(--text-muted); }
+.rsh-settings .rsh-advanced[open] summary::after { transform: rotate(180deg); }
+.rsh-settings .rsh-advanced[open] summary { border-bottom: 1px solid var(--rsh-line); }
+.rsh-settings .rsh-advanced-description { color: var(--text-muted); font-size: var(--font-smaller); line-height: 1.5; }
+.rsh-settings .rsh-advanced textarea { min-height: 80px; font-family: var(--font-monospace); }
+.rsh-settings .rsh-status {
+  margin: 16px 0 14px;
+  padding: 11px 13px;
+  border-radius: 8px;
+  background: var(--rsh-soft);
+  color: var(--text-muted);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.rsh-settings .rsh-status::before { content: "●"; margin-right: 9px; font-size: .75em; }
+.rsh-settings .rsh-status[data-state="warning"],
+.rsh-settings .rsh-status[data-state="error"] { color: var(--text-error); }
+.rsh-settings .rsh-status[data-state="success"] { color: var(--text-success); }
+.rsh-settings .rsh-status[data-state="checking"] { color: var(--text-accent); }
+.rsh-settings .rsh-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.rsh-settings .rsh-actions .setting-item { border: 0; padding: 0; }
+.rsh-settings .rsh-actions .setting-item-info { display: none; }
+.rsh-settings .rsh-actions button { min-width: 118px; }
+@media (max-width: 650px) {
+  .rsh-settings { padding-right: 0; }
+  .rsh-settings .rsh-credentials { grid-template-columns: 1fr; gap: 0; }
+  .rsh-settings .rsh-card-heading, .rsh-settings .rsh-card-content { padding-left: 16px; padding-right: 16px; }
+  .rsh-settings .rsh-advanced summary { padding-left: 16px; padding-right: 16px; }
+}
