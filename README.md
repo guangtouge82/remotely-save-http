@@ -9,7 +9,7 @@ A personal Obsidian plugin based on [Remotely Save](https://github.com/remotely-
 - One remote service: WebDAV.
 - Manual sync from the ribbon icon, the **Sync now** button in settings, or the **Start sync** command.
 - Silent scheduled merge sync every 5 seconds by default, with 15 second, 1 minute, 5 minute and Off options. Markdown changes use smart conflict handling.
-- A slim progress bar at the top shows manual and scheduled sync progress without text. It advances after completed file operations and reaches 100% only when the run succeeds. If sync fails, the bar shows the error reason.
+- A slim purple progress bar at the top shows manual sync progress without text. The first automatic sync after opening Obsidian also shows it; after a visible success, automatic sync keeps running but shows the bar again only after 30 minutes. File progress advances after completed operations and reaches 100% only on success. Errors always show the bar and the reason.
 - WebDAV Basic or Digest authentication, a configurable remote folder, Depth header, and custom request headers.
 - Desktop and mobile Obsidian, as declared in the plugin manifest.
 - Space then Enter at the end of a Markdown list item creates a nested child item.
@@ -82,7 +82,7 @@ The connection and sync buttons require a valid `http://` or `https://` address.
 
 ## Scheduled merge sync
 
-The **Scheduled merge sync** setting defaults to every 5 seconds while Obsidian is open. Choose 15 seconds, 1 minute, 5 minutes, or Off as needed. Each run reads the server's file list first and compares it with the local vault and the previous sync record; only detected changes cause file transfers. When the WebDAV server provides ETags, the comparison also detects changes with the same file size and modified time. A newer remote change is pulled, a newer local change is uploaded, and changes on both sides use smart conflict handling. The former 50% mass-change limit is disabled in this WebDAV build, so it cannot stop a valid sync. Scheduled checks show the top progress bar without update notices or sync icon animation. A scheduled run is skipped if another sync is active or no valid WebDAV address is configured. On mobile, timers pause while Obsidian is suspended in the background.
+The **Scheduled merge sync** setting defaults to every 5 seconds while Obsidian is open. Choose 15 seconds, 1 minute, 5 minutes, or Off as needed. Each run reads the server's file list first and compares it with the local vault and the previous sync record; only detected changes cause file transfers. When the WebDAV server provides ETags, the comparison also detects changes with the same file size and modified time. A newer remote change is pulled, a newer local change is uploaded, and changes on both sides use smart conflict handling. The former 50% mass-change limit is disabled in this WebDAV build, so it cannot stop a valid sync. Scheduled checks show the top progress bar on the first run and at most once per 30 minutes after a visible success, without update notices or sync icon animation. Errors always show the reason. A scheduled run is skipped if another sync is active or no valid WebDAV address is configured. On mobile, timers pause while Obsidian is suspended in the background.
 
 New files and folders beginning with `_` are included. Obsidian's `.obsidian` settings and other dot-prefixed paths remain excluded.
 

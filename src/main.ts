@@ -48,6 +48,7 @@ import {
   completeSyncProgress,
   getSyncErrorMessage,
   progressForCompletedFiles,
+  shouldShowSyncProgress,
   startSyncProgress,
   type SyncProgress,
 } from "./syncProgress";
@@ -149,6 +150,7 @@ export default class RemotelySavePlugin extends Plugin {
   syncProgressLabel?: HTMLSpanElement;
   syncProgressHideTimer?: number;
   syncProgressErrorReason?: string;
+  lastVisibleSyncSuccessAt?: number;
 
   renderSyncProgress(progress: SyncProgress) {
     if (this.syncProgressHideTimer !== undefined) {
@@ -204,6 +206,12 @@ export default class RemotelySavePlugin extends Plugin {
   }
 
   async syncRun(triggerSource: SyncTriggerSourceType = "manual") {
+    if (this.isSyncing) return;
+    const showProgressForRun = shouldShowSyncProgress(
+      triggerSource,
+      this.lastVisibleSyncSuccessAt,
+      Date.now()
+    );
     let profiler: Profiler | undefined = undefined;
     if (this.settings.profiler?.enable ?? false) {
       profiler = new Profiler(
@@ -290,8 +298,15 @@ export default class RemotelySavePlugin extends Plugin {
       step: number,
       everythingOk: boolean
     ) => {
-      if (step === 8 && this.syncProgress !== undefined) {
-        this.renderSyncProgress(completeSyncProgress(this.syncProgress, everythingOk));
+      if (step === 8) {
+        if (this.syncProgress !== undefined) {
+          this.renderSyncProgress(completeSyncProgress(this.syncProgress, everythingOk));
+        } else if (!everythingOk) {
+          this.renderSyncProgress(completeSyncProgress(startSyncProgress(), false));
+        }
+        if (everythingOk && showProgressForRun) {
+          this.lastVisibleSyncSuccessAt = Date.now();
+        }
       }
       if (step === 8 && everythingOk) {
         const ts = Date.now();
@@ -325,15 +340,12 @@ export default class RemotelySavePlugin extends Plugin {
       }
     };
 
-    if (this.isSyncing) {
-      return;
-    }
-
     const configSaver = async () => await this.saveSettings();
 
     try {
       this.syncProgressErrorReason = undefined;
-      this.renderSyncProgress(startSyncProgress());
+      this.syncProgress = undefined;
+      if (showProgressForRun) this.renderSyncProgress(startSyncProgress());
       await syncer(
         fsLocal,
         fsRemote,
@@ -357,9 +369,9 @@ export default class RemotelySavePlugin extends Plugin {
       );
     } catch (error) {
       this.syncProgressErrorReason = getSyncErrorMessage(error);
-      if (this.syncProgress !== undefined) {
-        this.renderSyncProgress(completeSyncProgress(this.syncProgress, false));
-      }
+      this.renderSyncProgress(
+        completeSyncProgress(this.syncProgress ?? startSyncProgress(), false)
+      );
       throw error;
     } finally {
       if (this.syncProgress?.state === "running") {

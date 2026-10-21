@@ -14,14 +14,8 @@
 .rsh-sync-progress-fill {
   height: 100%;
   width: 0;
-  background: var(--interactive-accent);
+  background: #8b5cf6;
   transition: width 180ms ease-out;
-}
-.rsh-sync-progress[data-state="success"] .rsh-sync-progress-fill {
-  background: var(--text-success);
-}
-.rsh-sync-progress[data-state="error"] .rsh-sync-progress-fill {
-  background: var(--text-error);
 }
 .rsh-sync-progress-label {
   position: absolute;
@@ -30,7 +24,7 @@
   padding: 3px 7px;
   border-radius: 6px;
   background: var(--background-primary);
-  color: var(--text-error);
+  color: var(--text-normal);
   box-shadow: var(--shadow-s);
   font-size: var(--font-smallest);
   line-height: 1.3;

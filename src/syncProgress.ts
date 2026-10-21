@@ -1,3 +1,5 @@
+import type { SyncTriggerSourceType } from "./baseTypes";
+
 export type SyncProgress = Readonly<{
   percent: number;
   state: "running" | "success" | "error";
@@ -12,6 +14,18 @@ const STEP_PERCENT: Readonly<Record<number, number>> = {
   6: 17,
   7: 20,
 };
+
+const VISIBLE_SUCCESS_INTERVAL_MS = 30 * 60 * 1000;
+
+export const shouldShowSyncProgress = (
+  source: SyncTriggerSourceType,
+  lastVisibleSuccessAt: number | undefined,
+  now: number
+): boolean =>
+  source === "manual" ||
+  source === "dry" ||
+  lastVisibleSuccessAt === undefined ||
+  now - lastVisibleSuccessAt >= VISIBLE_SUCCESS_INTERVAL_MS;
 
 export const startSyncProgress = (): SyncProgress => ({ percent: 0, state: "running" });
 

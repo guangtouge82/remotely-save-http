@@ -4,6 +4,7 @@ import {
   completeSyncProgress,
   getSyncErrorMessage,
   progressForCompletedFiles,
+  shouldShowSyncProgress,
   startSyncProgress,
 } from "../src/syncProgress";
 
@@ -45,5 +46,15 @@ describe("sync progress", () => {
       "upload failed; download failed"
     );
     assert.equal(getSyncErrorMessage(new Error("")), "Sync failed");
+  });
+
+  it("shows the first automatic run, then waits 30 minutes after a visible success", () => {
+    const now = 1_800_000_000;
+    assert.equal(shouldShowSyncProgress("auto", undefined, now), true);
+    assert.equal(shouldShowSyncProgress("auto", now - 5_000, now), false);
+    assert.equal(shouldShowSyncProgress("auto", now - 1_799_999, now), false);
+    assert.equal(shouldShowSyncProgress("auto", now - 1_800_000, now), true);
+    assert.equal(shouldShowSyncProgress("auto", now - 1_800_000, now + 5_000), true);
+    assert.equal(shouldShowSyncProgress("manual", now - 5_000, now), true);
   });
 });
