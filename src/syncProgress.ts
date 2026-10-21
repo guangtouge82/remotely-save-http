@@ -45,3 +45,17 @@ export const completeSyncProgress = (
   percent: succeeded ? 100 : progress.percent,
   state: succeeded ? "success" : "error",
 });
+
+export const getSyncErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    const nested = (error as Error & { errors?: unknown[] }).errors;
+    if (Array.isArray(nested) && nested.length > 0) {
+      const messages = nested.map(getSyncErrorMessage);
+      return messages.join("; ");
+    }
+    return error.message.trim() || "Sync failed";
+  }
+  return typeof error === "string" && error.trim()
+    ? error.trim()
+    : "Sync failed";
+};

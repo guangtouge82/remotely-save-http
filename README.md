@@ -9,7 +9,7 @@ A personal Obsidian plugin based on [Remotely Save](https://github.com/remotely-
 - One remote service: WebDAV.
 - Manual sync from the ribbon icon, the **Sync now** button in settings, or the **Start sync** command.
 - Silent scheduled merge sync every 5 seconds by default, with 15 second, 1 minute, 5 minute and Off options. Markdown changes use smart conflict handling.
-- A slim progress bar at the top shows the percentage for manual and scheduled sync. File progress advances after each completed operation and reaches 100% only when the run succeeds.
+- A slim progress bar at the top shows manual and scheduled sync progress without text. It advances after completed file operations and reaches 100% only when the run succeeds. If sync fails, the bar shows the error reason.
 - WebDAV Basic or Digest authentication, a configurable remote folder, Depth header, and custom request headers.
 - Desktop and mobile Obsidian, as declared in the plugin manifest.
 - Space then Enter at the end of a Markdown list item creates a nested child item.

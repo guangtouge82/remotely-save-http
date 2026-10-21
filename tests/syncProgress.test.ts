@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   advanceSyncProgress,
   completeSyncProgress,
+  getSyncErrorMessage,
   progressForCompletedFiles,
   startSyncProgress,
 } from "../src/syncProgress";
@@ -32,5 +33,17 @@ describe("sync progress", () => {
     const failed = completeSyncProgress(advanceSyncProgress(started, 5), false);
     assert.equal(failed.state, "error");
     assert.equal(failed.percent, 14);
+  });
+
+  it("extracts the actual reason for a failed sync", () => {
+    assert.equal(getSyncErrorMessage(new Error("WebDAV timeout")), "WebDAV timeout");
+    assert.equal(
+      getSyncErrorMessage(new AggregateError([
+        new Error("upload failed"),
+        new Error("download failed"),
+      ])),
+      "upload failed; download failed"
+    );
+    assert.equal(getSyncErrorMessage(new Error("")), "Sync failed");
   });
 });

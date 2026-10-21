@@ -1,5 +1,3 @@
-// biome-ignore lint/suspicious/noShadowRestrictedNames: <explanation>
-import AggregateError from "aggregate-error";
 import cloneDeep from "lodash/cloneDeep";
 import throttle from "lodash/throttle";
 import type { EditorView } from "@codemirror/view";
@@ -48,6 +46,7 @@ import { RemotelySaveSettingTab } from "./settingsWebdavOnly";
 import {
   advanceSyncProgress,
   completeSyncProgress,
+  getSyncErrorMessage,
   progressForCompletedFiles,
   startSyncProgress,
   type SyncProgress,
@@ -136,7 +135,6 @@ export default class RemotelySavePlugin extends Plugin {
   hasPendingSyncOnSave!: boolean;
   statusBarElement!: HTMLSpanElement;
   currLogLevel!: string;
-  currSyncMsg?: string;
   syncRibbon?: HTMLElement;
   autoRunIntervalID?: number;
   syncOnSaveIntervalID?: number;
@@ -150,6 +148,7 @@ export default class RemotelySavePlugin extends Plugin {
   syncProgressFill?: HTMLDivElement;
   syncProgressLabel?: HTMLSpanElement;
   syncProgressHideTimer?: number;
+  syncProgressErrorReason?: string;
 
   renderSyncProgress(progress: SyncProgress) {
     if (this.syncProgressHideTimer !== undefined) {
@@ -169,6 +168,7 @@ export default class RemotelySavePlugin extends Plugin {
       track.appendChild(fill);
       const label = document.createElement("span");
       label.className = "rsh-sync-progress-label";
+      label.setAttribute("role", "alert");
       element.append(track, label);
       document.body.appendChild(element);
       this.syncProgressElement = element;
@@ -181,11 +181,16 @@ export default class RemotelySavePlugin extends Plugin {
         ? "sync_progress_success"
         : "sync_progress_error";
     const status = this.i18n.t(statusKey);
+    const errorReason = this.syncProgressErrorReason ?? status;
     this.syncProgressElement.dataset.state = progress.state;
     this.syncProgressElement.setAttribute("aria-valuenow", String(progress.percent));
-    this.syncProgressElement.setAttribute("aria-label", status);
+    this.syncProgressElement.setAttribute(
+      "aria-label",
+      progress.state === "error" ? errorReason : status
+    );
     this.syncProgressFill!.style.width = `${progress.percent}%`;
-    this.syncProgressLabel!.textContent = `${status} ${progress.percent}%`;
+    this.syncProgressLabel!.hidden = progress.state !== "error";
+    this.syncProgressLabel!.textContent = progress.state === "error" ? errorReason : "";
     this.syncProgress = progress;
     if (progress.state !== "running") {
       this.syncProgressHideTimer = window.setTimeout(() => {
@@ -194,7 +199,7 @@ export default class RemotelySavePlugin extends Plugin {
         this.syncProgressFill = undefined;
         this.syncProgressLabel = undefined;
         this.syncProgressHideTimer = undefined;
-      }, 1500);
+      }, progress.state === "error" ? 8000 : 900);
     }
   }
 
@@ -246,128 +251,15 @@ export default class RemotelySavePlugin extends Plugin {
       return res;
     };
 
-    const getNotice = (
-      s: SyncTriggerSourceType,
-      msg: string,
-      timeout?: number
-    ) => {
-      if (s === "manual" || s === "dry") {
-        new Notice(msg, timeout);
-      }
-    };
-
-    const notifyFunc = async (s: SyncTriggerSourceType, step: number) => {
+    const notifyFunc = async (_source: SyncTriggerSourceType, step: number) => {
       if (this.syncProgress !== undefined && step >= 1 && step <= 7) {
         this.renderSyncProgress(advanceSyncProgress(this.syncProgress, step));
       }
-      switch (step) {
-        case 0:
-          if (s === "dry") {
-            if (this.settings.currLogLevel === "info") {
-              getNotice(s, t("syncrun_shortstep0"));
-            } else {
-              getNotice(s, t("syncrun_step0"));
-            }
-          }
-
-          break;
-
-        case 1:
-          if (this.settings.currLogLevel === "info") {
-            getNotice(
-              s,
-              t("syncrun_shortstep1", {
-                serviceType: this.settings.serviceType,
-              })
-            );
-          } else {
-            getNotice(
-              s,
-              t("syncrun_step1", {
-                serviceType: this.settings.serviceType,
-              })
-            );
-          }
-          break;
-
-        case 2:
-          if (this.settings.currLogLevel === "info") {
-            // pass
-          } else {
-            getNotice(s, t("syncrun_step2"));
-          }
-          break;
-
-        case 3:
-          if (this.settings.currLogLevel === "info") {
-            // pass
-          } else {
-            getNotice(s, t("syncrun_step3"));
-          }
-          break;
-
-        case 4:
-          if (this.settings.currLogLevel === "info") {
-            // pass
-          } else {
-            getNotice(s, t("syncrun_step4"));
-          }
-          break;
-
-        case 5:
-          if (this.settings.currLogLevel === "info") {
-            // pass
-          } else {
-            getNotice(s, t("syncrun_step5"));
-          }
-          break;
-
-        case 6:
-          if (this.settings.currLogLevel === "info") {
-            // pass
-          } else {
-            getNotice(s, t("syncrun_step6"));
-          }
-          break;
-
-        case 7:
-          if (s === "dry") {
-            if (this.settings.currLogLevel === "info") {
-              getNotice(s, t("syncrun_shortstep2skip"));
-            } else {
-              getNotice(s, t("syncrun_step7skip"));
-            }
-          } else {
-            if (this.settings.currLogLevel === "info") {
-              // pass
-            } else {
-              getNotice(s, t("syncrun_step7"));
-            }
-          }
-          break;
-
-        case 8:
-          if (this.settings.currLogLevel === "info") {
-            getNotice(s, t("syncrun_shortstep2"));
-          } else {
-            getNotice(s, t("syncrun_step8"));
-          }
-          break;
-
-        default:
-          throw Error(`unknown step=${step} for showing notice`);
-      }
     };
 
-    const errNotifyFunc = async (s: SyncTriggerSourceType, error: Error) => {
+    const errNotifyFunc = async (_source: SyncTriggerSourceType, error: Error) => {
       console.error(error);
-      if (error instanceof AggregateError) {
-        for (const e of error.errors) {
-          getNotice(s, e.message, 10 * 1000);
-        }
-      } else {
-        getNotice(s, error?.message ?? "error while sync", 10 * 1000);
-      }
+      this.syncProgressErrorReason = getSyncErrorMessage(error);
     };
 
     const ribboonFunc = async (s: SyncTriggerSourceType, step: number) => {
@@ -401,10 +293,7 @@ export default class RemotelySavePlugin extends Plugin {
       if (step === 8 && this.syncProgress !== undefined) {
         this.renderSyncProgress(completeSyncProgress(this.syncProgress, everythingOk));
       }
-      if (step === 1 && s !== "auto") {
-        // change status to "syncing..." on statusbar
-        this.updateLastSyncMsg(s, "syncing", -1, -1);
-      } else if (step === 8 && everythingOk) {
+      if (step === 8 && everythingOk) {
         const ts = Date.now();
         await upsertLastSuccessSyncTimeByVault(this.db, this.vaultRandomID, ts);
         if (s !== "auto") this.updateLastSyncMsg(s, "not_syncing", ts, null); // hack: 'not_syncing'
@@ -420,11 +309,9 @@ export default class RemotelySavePlugin extends Plugin {
     };
 
     const callbackSyncProcess = async (
-      s: SyncTriggerSourceType,
+      _source: SyncTriggerSourceType,
       realCounter: number,
-      realTotalCount: number,
-      pathName: string,
-      decision: string
+      realTotalCount: number
     ) => {
       if (this.syncProgress !== undefined) {
         const nextProgress = progressForCompletedFiles(
@@ -436,37 +323,16 @@ export default class RemotelySavePlugin extends Plugin {
           this.renderSyncProgress(nextProgress);
         }
       }
-      if (s === "auto") return;
-      this.setCurrSyncMsg(
-        t,
-        s,
-        realCounter,
-        realTotalCount,
-        pathName,
-        decision,
-        triggerSource
-      );
     };
 
     if (this.isSyncing) {
-      getNotice(
-        triggerSource,
-        t("syncrun_alreadyrunning", {
-          pluginName: this.manifest.name,
-          syncStatus: "running",
-          newTriggerSource: triggerSource,
-        })
-      );
-
-      if (this.currSyncMsg !== undefined && this.currSyncMsg !== "") {
-        getNotice(triggerSource, this.currSyncMsg);
-      }
       return;
     }
 
     const configSaver = async () => await this.saveSettings();
 
     try {
+      this.syncProgressErrorReason = undefined;
       this.renderSyncProgress(startSyncProgress());
       await syncer(
         fsLocal,
@@ -489,6 +355,12 @@ export default class RemotelySavePlugin extends Plugin {
         statusBarFunc,
         callbackSyncProcess
       );
+    } catch (error) {
+      this.syncProgressErrorReason = getSyncErrorMessage(error);
+      if (this.syncProgress !== undefined) {
+        this.renderSyncProgress(completeSyncProgress(this.syncProgress, false));
+      }
+      throw error;
     } finally {
       if (this.syncProgress?.state === "running") {
         this.renderSyncProgress(completeSyncProgress(this.syncProgress, false));
@@ -508,7 +380,6 @@ export default class RemotelySavePlugin extends Plugin {
     addIcon(iconNameSyncWait, iconSvgSyncWait);
     addIcon(iconNameSyncRunning, iconSvgSyncRunning);
 
-    this.currSyncMsg = "";
     this.isSyncing = false;
     this.hasPendingSyncOnSave = false;
 
@@ -1013,30 +884,6 @@ export default class RemotelySavePlugin extends Plugin {
   async saveAgreeToUseNewSyncAlgorithm() {
     this.settings.agreeToUseSyncV3 = true;
     await this.saveSettings();
-  }
-
-  setCurrSyncMsg(
-    t: (x: TransItemType, vars?: any) => string,
-    s: SyncTriggerSourceType,
-    i: number,
-    totalCount: number,
-    pathName: string,
-    decision: string,
-    triggerSource: SyncTriggerSourceType
-  ) {
-    const L = `${totalCount}`.length;
-    const iStr = `${i}`.padStart(L, "0");
-    const prefix = getStatusBarShortMsgFromSyncSource(t, s);
-    const shortMsg = prefix + `Syncing ${iStr}/${totalCount}`;
-    const longMsg =
-      prefix +
-      `Syncing progress=${iStr}/${totalCount},decision=${decision},path=${pathName},source=${triggerSource}`;
-    this.currSyncMsg = longMsg;
-
-    if (this.statusBarElement !== undefined) {
-      this.statusBarElement.setText(shortMsg);
-      this.statusBarElement.setAttribute("aria-label", longMsg);
-    }
   }
 
   updateLastSyncMsg(

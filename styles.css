@@ -30,12 +30,14 @@
   padding: 3px 7px;
   border-radius: 6px;
   background: var(--background-primary);
-  color: var(--text-normal);
+  color: var(--text-error);
   box-shadow: var(--shadow-s);
   font-size: var(--font-smallest);
   line-height: 1.3;
-  white-space: nowrap;
+  max-width: min(90vw, 560px);
+  overflow-wrap: anywhere;
 }
+.rsh-sync-progress-label[hidden] { display: none; }
 
 .cm-editor .rsh-narrow-exit {
   position: absolute;
@@ -145,6 +147,7 @@
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
+.rsh-settings .rsh-status[hidden] { display: none; }
 .rsh-settings .rsh-status::before { content: "●"; margin-right: 9px; font-size: .75em; }
 .rsh-settings .rsh-status[data-state="warning"],
 .rsh-settings .rsh-status[data-state="error"] { color: var(--text-error); }

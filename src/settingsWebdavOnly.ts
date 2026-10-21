@@ -174,12 +174,13 @@ export class RemotelySaveSettingTab extends PluginSettingTab {
       button.setButtonText(t("webdav_only_sync_button")).setCta().onClick(async () => {
         if (busy || addressError()) return;
         busy = true;
-        setStatus("checking", t("webdav_only_syncing"));
+        status.hidden = true;
         updateButtons();
         try {
           await this.plugin.syncRun("manual");
         } finally {
           busy = false;
+          status.hidden = false;
           changed();
         }
       });
