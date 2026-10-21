@@ -1812,6 +1812,7 @@ export const doActualSync = async (
   ];
 
   let realCounter = 0;
+  await callbackSyncProcess?.(triggerSource, 0, realTotalCount, "", "");
   for (let i = 0; i < nested.length; ++i) {
     profiler?.addIndent();
     profiler?.insert(`doActualSync: step ${i} start`);
@@ -1842,18 +1843,6 @@ export const doActualSync = async (
           //   `start syncing "${key}" with plan ${JSON.stringify(val)}`
           // );
 
-          await callbackSyncProcess?.(
-            triggerSource,
-            realCounter,
-            realTotalCount,
-            key,
-            val.decision
-          );
-
-          if (val.change === undefined || val.change) {
-            realCounter += 1;
-          }
-
           await dispatchOperationToActualV3(
             key,
             vaultRandomID,
@@ -1863,6 +1852,17 @@ export const doActualSync = async (
             fsEncrypt,
             db,
             conflictAction
+          );
+
+          if (val.change === undefined || val.change) {
+            realCounter += 1;
+          }
+          await callbackSyncProcess?.(
+            triggerSource,
+            realCounter,
+            realTotalCount,
+            key,
+            val.decision
           );
 
           // console.debug(`finished ${key}`);

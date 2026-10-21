@@ -45,6 +45,13 @@ import { changeMobileStatusBar } from "./misc";
 import { DEFAULT_PROFILER_CONFIG, Profiler } from "./profiler";
 import { normalizeScheduledMergeIntervalSeconds } from "./scheduledMerge";
 import { RemotelySaveSettingTab } from "./settingsWebdavOnly";
+import {
+  advanceSyncProgress,
+  completeSyncProgress,
+  progressForCompletedFiles,
+  startSyncProgress,
+  type SyncProgress,
+} from "./syncProgress";
 
 const DEFAULT_SETTINGS = {
   webdav: DEFAULT_WEBDAV_CONFIG,
@@ -138,6 +145,58 @@ export default class RemotelySavePlugin extends Plugin {
   debugServerTemp?: string;
   syncEvent?: Events;
   appContainerObserver?: MutationObserver;
+  syncProgress?: SyncProgress;
+  syncProgressElement?: HTMLDivElement;
+  syncProgressFill?: HTMLDivElement;
+  syncProgressLabel?: HTMLSpanElement;
+  syncProgressHideTimer?: number;
+
+  renderSyncProgress(progress: SyncProgress) {
+    if (this.syncProgressHideTimer !== undefined) {
+      window.clearTimeout(this.syncProgressHideTimer);
+      this.syncProgressHideTimer = undefined;
+    }
+    if (this.syncProgressElement === undefined) {
+      const element = document.createElement("div");
+      element.className = "rsh-sync-progress";
+      element.setAttribute("role", "progressbar");
+      element.setAttribute("aria-valuemin", "0");
+      element.setAttribute("aria-valuemax", "100");
+      const track = document.createElement("div");
+      track.className = "rsh-sync-progress-track";
+      const fill = document.createElement("div");
+      fill.className = "rsh-sync-progress-fill";
+      track.appendChild(fill);
+      const label = document.createElement("span");
+      label.className = "rsh-sync-progress-label";
+      element.append(track, label);
+      document.body.appendChild(element);
+      this.syncProgressElement = element;
+      this.syncProgressFill = fill;
+      this.syncProgressLabel = label;
+    }
+    const statusKey = progress.state === "running"
+      ? "sync_progress_running"
+      : progress.state === "success"
+        ? "sync_progress_success"
+        : "sync_progress_error";
+    const status = this.i18n.t(statusKey);
+    this.syncProgressElement.dataset.state = progress.state;
+    this.syncProgressElement.setAttribute("aria-valuenow", String(progress.percent));
+    this.syncProgressElement.setAttribute("aria-label", status);
+    this.syncProgressFill!.style.width = `${progress.percent}%`;
+    this.syncProgressLabel!.textContent = `${status} ${progress.percent}%`;
+    this.syncProgress = progress;
+    if (progress.state !== "running") {
+      this.syncProgressHideTimer = window.setTimeout(() => {
+        this.syncProgressElement?.remove();
+        this.syncProgressElement = undefined;
+        this.syncProgressFill = undefined;
+        this.syncProgressLabel = undefined;
+        this.syncProgressHideTimer = undefined;
+      }, 1500);
+    }
+  }
 
   async syncRun(triggerSource: SyncTriggerSourceType = "manual") {
     let profiler: Profiler | undefined = undefined;
@@ -198,6 +257,9 @@ export default class RemotelySavePlugin extends Plugin {
     };
 
     const notifyFunc = async (s: SyncTriggerSourceType, step: number) => {
+      if (this.syncProgress !== undefined && step >= 1 && step <= 7) {
+        this.renderSyncProgress(advanceSyncProgress(this.syncProgress, step));
+      }
       switch (step) {
         case 0:
           if (s === "dry") {
@@ -336,6 +398,9 @@ export default class RemotelySavePlugin extends Plugin {
       step: number,
       everythingOk: boolean
     ) => {
+      if (step === 8 && this.syncProgress !== undefined) {
+        this.renderSyncProgress(completeSyncProgress(this.syncProgress, everythingOk));
+      }
       if (step === 1 && s !== "auto") {
         // change status to "syncing..." on statusbar
         this.updateLastSyncMsg(s, "syncing", -1, -1);
@@ -361,6 +426,16 @@ export default class RemotelySavePlugin extends Plugin {
       pathName: string,
       decision: string
     ) => {
+      if (this.syncProgress !== undefined) {
+        const nextProgress = progressForCompletedFiles(
+          this.syncProgress,
+          realCounter,
+          realTotalCount
+        );
+        if (nextProgress.percent !== this.syncProgress.percent) {
+          this.renderSyncProgress(nextProgress);
+        }
+      }
       if (s === "auto") return;
       this.setCurrSyncMsg(
         t,
@@ -392,6 +467,7 @@ export default class RemotelySavePlugin extends Plugin {
     const configSaver = async () => await this.saveSettings();
 
     try {
+      this.renderSyncProgress(startSyncProgress());
       await syncer(
         fsLocal,
         fsRemote,
@@ -414,6 +490,9 @@ export default class RemotelySavePlugin extends Plugin {
         callbackSyncProcess
       );
     } finally {
+      if (this.syncProgress?.state === "running") {
+        this.renderSyncProgress(completeSyncProgress(this.syncProgress, false));
+      }
       this.isSyncing = false;
       fsEncrypt.closeResources();
       profiler?.clear();
@@ -634,6 +713,12 @@ export default class RemotelySavePlugin extends Plugin {
 
   async onunload() {
     console.info(`unloading plugin ${this.manifest.id}`);
+    if (this.syncProgressHideTimer !== undefined) {
+      window.clearTimeout(this.syncProgressHideTimer);
+      this.syncProgressHideTimer = undefined;
+    }
+    this.syncProgressElement?.remove();
+    this.syncProgressElement = undefined;
     this.syncRibbon = undefined;
     if (this.appContainerObserver !== undefined) {
       this.appContainerObserver.disconnect();
